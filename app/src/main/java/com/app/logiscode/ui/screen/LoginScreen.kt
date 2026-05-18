@@ -11,13 +11,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
@@ -29,6 +37,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.logiscode.model.LoginState
 import com.app.logiscode.viewmodel.LoginViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
@@ -36,6 +45,7 @@ fun LoginScreen(
 ) {
     val formState by viewModel.formState.collectAsStateWithLifecycle()
     val loginState by viewModel.loginState.collectAsStateWithLifecycle()
+    var roleExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(loginState) {
         if (loginState is LoginState.Success) {
@@ -99,6 +109,44 @@ fun LoginScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            ExposedDropdownMenuBox(
+                expanded = roleExpanded,
+                onExpandedChange = { roleExpanded = it }
+            ) {
+                OutlinedTextField(
+                    value = formState.selectedRole,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Rol") },
+                    placeholder = { Text("Seleccione un rol") },
+                    isError = formState.roleError != null,
+                    supportingText = formState.roleError?.let { error ->
+                        { Text(error) }
+                    },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = roleExpanded) },
+                    modifier = Modifier
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                        .fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = roleExpanded,
+                    onDismissRequest = { roleExpanded = false }
+                ) {
+                    viewModel.roles.forEach { role ->
+                        DropdownMenuItem(
+                            text = { Text(role) },
+                            onClick = {
+                                viewModel.onRoleChange(role)
+                                roleExpanded = false
+                            },
+                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 

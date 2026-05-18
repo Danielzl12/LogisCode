@@ -14,6 +14,8 @@ class LoginViewModel : ViewModel() {
 
     private val authRepository = AuthRepository()
 
+    val roles = listOf("Estudiante", "Profesor", "Administrativo", "Conductor")
+
     private val _formState = MutableStateFlow(LoginFormState())
     val formState: StateFlow<LoginFormState> = _formState.asStateFlow()
 
@@ -28,6 +30,10 @@ class LoginViewModel : ViewModel() {
         _formState.value = _formState.value.copy(password = password, passwordError = null)
     }
 
+    fun onRoleChange(role: String) {
+        _formState.value = _formState.value.copy(selectedRole = role, roleError = null)
+    }
+
     fun login() {
         val form = _formState.value
         var hasError = false
@@ -40,13 +46,17 @@ class LoginViewModel : ViewModel() {
             _formState.value = _formState.value.copy(passwordError = "Mínimo 6 caracteres")
             hasError = true
         }
+        if (form.selectedRole.isEmpty()) {
+            _formState.value = _formState.value.copy(roleError = "Seleccione un rol")
+            hasError = true
+        }
         if (hasError) return
 
         _loginState.value = LoginState.Loading
         viewModelScope.launch {
             authRepository.login(form.email, form.password)
                 .onSuccess { userName ->
-                    _loginState.value = LoginState.Success(userName)
+                    _loginState.value = LoginState.Success(userName, form.selectedRole)
                 }
                 .onFailure { error ->
                     _loginState.value = LoginState.Error(
