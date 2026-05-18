@@ -1,35 +1,30 @@
 package com.app.logiscode.repository
 
 import com.app.logiscode.model.BusLocation
+import com.app.logiscode.model.getDefaultRoutes
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class BusTrackingRepository {
 
-    private val route = listOf(
-        4.6097 to -74.0817,
-        4.6110 to -74.0830,
-        4.6125 to -74.0800,
-        4.6140 to -74.0785,
-        4.6120 to -74.0770,
-        4.6100 to -74.0790
-    )
-
-    fun getBusLocationFlow(): Flow<BusLocation> = flow {
-        var index = 0
+    fun getAllBusLocationsFlow(): Flow<List<BusLocation>> = flow {
+        val routes = getDefaultRoutes()
+        val indices = IntArray(routes.size)
         while (true) {
-            val (lat, lng) = route[index % route.size]
-            emit(
+            val locations = routes.mapIndexed { i, route ->
+                val (lat, lng) = route.waypoints[indices[i] % route.waypoints.size]
                 BusLocation(
-                    busId = "BUS-001",
+                    busId = "BUS-${String.format("%03d", i + 1)}",
+                    routeId = route.id,
                     latitude = lat,
                     longitude = lng,
-                    routeName = "Ruta Escolar Norte",
+                    routeName = route.name,
                     lastUpdated = System.currentTimeMillis()
                 )
-            )
-            index++
+            }
+            emit(locations)
+            indices.forEachIndexed { i, _ -> indices[i]++ }
             delay(3000L)
         }
     }

@@ -3,6 +3,7 @@ package com.app.logiscode.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.logiscode.model.BusLocation
+import com.app.logiscode.model.getDefaultRoutes
 import com.app.logiscode.repository.BusTrackingRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,15 +15,17 @@ class MapViewModel : ViewModel() {
 
     private val repository = BusTrackingRepository()
 
-    private val _busLocation = MutableStateFlow<BusLocation?>(null)
-    val busLocation: StateFlow<BusLocation?> = _busLocation.asStateFlow()
+    val routes = getDefaultRoutes()
 
-    val bogotaCenter = GeoPoint(4.6097, -74.0817)
+    private val _busLocations = MutableStateFlow<List<BusLocation>>(emptyList())
+    val busLocations: StateFlow<List<BusLocation>> = _busLocations.asStateFlow()
+
+    val bogotaCenter = GeoPoint(4.6400, -74.0700)
 
     init {
         viewModelScope.launch {
-            repository.getBusLocationFlow().collect { location ->
-                _busLocation.value = location
+            repository.getAllBusLocationsFlow().collect { locations ->
+                _busLocations.value = locations
             }
         }
     }
