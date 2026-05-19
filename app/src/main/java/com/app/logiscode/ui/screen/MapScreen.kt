@@ -37,9 +37,10 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.app.logiscode.model.Route
+import com.app.logiscode.R
 import com.app.logiscode.viewmodel.MapViewModel
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.BoundingBox
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
@@ -60,16 +61,29 @@ fun MapScreen(
 
     val markerIcons = remember(routes) {
         routes.associate { route ->
-            route.id to getColoredMarkerIcon(context, route.colorHex)
+            route.id to getColoredBusIcon(context, route.colorHex)
         }
+    }
+
+    val allPoints = routes.flatMap { it.waypoints }
+    val boundingBox = remember(allPoints) {
+        val lats = allPoints.map { it.first }
+        val lngs = allPoints.map { it.second }
+        BoundingBox(
+            lats.max() + 0.01,
+            lngs.max() + 0.01,
+            lats.min() - 0.01,
+            lngs.min() - 0.01
+        )
     }
 
     val mapView = remember {
         MapView(context).apply {
             setTileSource(TileSourceFactory.MAPNIK)
             setMultiTouchControls(true)
-            controller.setZoom(12.5)
-            controller.setCenter(viewModel.bogotaCenter)
+            post {
+                zoomToBoundingBox(boundingBox, true, 60)
+            }
         }
     }
 
@@ -145,7 +159,7 @@ fun MapScreen(
                 visibleLocations.forEach { loc ->
                     val marker = Marker(map).apply {
                         position = GeoPoint(loc.latitude, loc.longitude)
-                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                         title = loc.routeName
                         snippet = "Bus: ${loc.busId}"
                         markerIcons[loc.routeId]?.let { icon = it }
@@ -159,11 +173,8 @@ fun MapScreen(
     }
 }
 
-private fun getColoredMarkerIcon(context: Context, colorInt: Int): Drawable {
-    val drawable = ContextCompat.getDrawable(
-        context,
-        org.osmdroid.library.R.drawable.marker_default
-    )!!.mutate()
+private fun getColoredBusIcon(context: Context, colorInt: Int): Drawable {
+    val drawable = ContextCompat.getDrawable(context, R.drawable.ic_bus)!!.mutate()
     @Suppress("DEPRECATION")
     drawable.setColorFilter(colorInt, PorterDuff.Mode.SRC_IN)
     return drawable

@@ -4,11 +4,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Assessment
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Notifications
@@ -35,6 +37,7 @@ fun MainScreen(onLogout: () -> Unit) {
         TabItem("Mapa", Icons.Outlined.Map, Icons.Filled.Map),
         TabItem("Reportes", Icons.Outlined.Assessment, Icons.Filled.Assessment),
         TabItem("Novedades", Icons.Outlined.Notifications, Icons.Filled.Notifications),
+        TabItem("Chat IA", Icons.Outlined.AutoAwesome, Icons.Filled.AutoAwesome),
         TabItem("Ajustes", Icons.Outlined.Settings, Icons.Filled.Settings)
     )
 
@@ -63,7 +66,8 @@ fun MainScreen(onLogout: () -> Unit) {
                 1 -> MapScreen()
                 2 -> ReportesScreen()
                 3 -> NovedadesScreen()
-                4 -> ConfiguracionScreen(onLogout = onLogout)
+                4 -> ChatScreen()
+                5 -> ConfiguracionScreen(onLogout = onLogout)
             }
         }
     }
